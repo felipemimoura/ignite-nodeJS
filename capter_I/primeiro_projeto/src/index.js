@@ -10,12 +10,12 @@ const customers = []
 
 app.post('/account', (request, response) => {
     const { cpf, name } = request.body
-    const id = uuidV4()
+ 
 
     customers.push({
         cpf,
         name,
-        id,
+        id: uuidV4(),
         statement: []
     })
 
