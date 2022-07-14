@@ -23,9 +23,9 @@ const verifyIsUserExist = (request, response, next) => {
 
 const getBalance = (statement) => {
     return statement.reduce((acc, opperation) => {
-        if(opperation.type === 'credit'){
+        if (opperation.type === 'credit') {
             return acc + opperation.amount
-        }else {
+        } else {
             return acc - opperation.amount
         }
     }, 0)
@@ -53,6 +53,15 @@ app.get('/statement', verifyIsUserExist, (request, response) => {
     const { customer } = request
     return response.json(customer.statement)
 })
+app.get('/statement/date', verifyIsUserExist, (request, response) => {
+    const { date } = request.query
+    const { customer } = request
+
+    const formatDate = new Date(date + " 00:00")
+
+    const statement = customer.statement.filter((statement) => statement.created_at.toDateString() === new Date(formatDate).toDateString())
+    return response.json(statement)
+})
 
 app.post('/deposit', verifyIsUserExist, (request, response) => {
     const { description, amount } = request.body
@@ -70,15 +79,14 @@ app.post('/deposit', verifyIsUserExist, (request, response) => {
     return response.status(201).send()
 })
 
-
 app.post('/withdraw', verifyIsUserExist, (request, response) => {
     const { amount } = request.body
     const { customer } = request
 
     const balance = getBalance(customer.statement)
 
-    if(balance < amount) {
-        return response.status(400).json({error: "Insufficient founds"})
+    if (balance < amount) {
+        return response.status(400).json({ error: "Insufficient founds" })
     }
 
     const statementOperation = {
