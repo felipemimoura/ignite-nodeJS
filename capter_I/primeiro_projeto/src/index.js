@@ -21,6 +21,16 @@ const verifyIsUserExist = (request, response, next) => {
     return next()
 }
 
+const getBalance = (statement) => {
+    return statement.reduce((acc, opperation) => {
+        if (opperation.type === 'credit') {
+            return acc + opperation.amount
+        } else {
+            return acc - opperation.amount
+        }
+    }, 0)
+}
+
 app.post('/account', (request, response) => {
     const { cpf, name } = request.body
 
@@ -38,10 +48,88 @@ app.post('/account', (request, response) => {
     return response.status(201).send()
 })
 
+app.put('/account', verifyIsUserExist, (request, response) => {
+    const { customer } = request
+    const { name } = request.body
+
+    customer.name = name
+
+    return response.status(201).send()
+})
+
+app.get("/account", verifyIsUserExist, (request, response) => {
+    const { customer } = request
+
+    return response.json(customer)
+})
+
+app.delete("/account", verifyIsUserExist, (request, response) => {
+    const { customer } = request
+
+    customers.splice(customer, 1)
+
+    return response.status(200).json(customers)
+})
 // app.use(verifyIsUserExist)
 app.get('/statement', verifyIsUserExist, (request, response) => {
     const { customer } = request
     return response.json(customer.statement)
+})
+app.get('/statement/date', verifyIsUserExist, (request, response) => {
+    const { date } = request.query
+    const { customer } = request
+
+    const formatDate = new Date(date + " 00:00")
+
+    const statement = customer.statement.filter((statement) => statement.created_at.toDateString() === new Date(formatDate).toDateString())
+    return response.json(statement)
+})
+
+app.post('/deposit', verifyIsUserExist, (request, response) => {
+    const { description, amount } = request.body
+    const { customer } = request
+
+    const statementOperation = {
+        description,
+        amount,
+        created_at: new Date(),
+        type: "credit"
+    }
+
+    customer.statement.push(statementOperation)
+
+    return response.status(201).send()
+})
+
+app.post('/withdraw', verifyIsUserExist, (request, response) => {
+    const { amount } = request.body
+    const { customer } = request
+
+    const balance = getBalance(customer.statement)
+
+    if (balance < amount) {
+        return response.status(400).json({ error: "Insufficient founds" })
+    }
+
+    const statementOperation = {
+        amount,
+        created_at: new Date(),
+        type: "withdraw"
+    }
+
+    customer.statement.push(statementOperation)
+
+    return response.send()
+
+
+})
+
+app.get("/balance", verifyIsUserExist, (request, response) => {
+    const { customer } = request
+
+    const balance = getBalance(customer.statement)
+
+    return response.json(balance)
 })
 
 
