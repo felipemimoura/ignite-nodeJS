@@ -44,6 +44,22 @@ app.get('/statement', verifyIsUserExist, (request, response) => {
     return response.json(customer.statement)
 })
 
+app.post('/deposit',verifyIsUserExist, (request, response) => {
+    const { description, amount } = request.body
+    const { customer } = request
+
+    const statementOperation = {
+        description,
+        amount,
+        created_at: new Date(),
+        type: "credit"
+    }
+
+    customer.statement.push(statementOperation)
+
+    return response.status(201).send()
+})
+
 
 app.listen(PORT, () => {
     console.log(`Server is running on PORT: ${PORT}`)
