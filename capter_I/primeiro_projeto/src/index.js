@@ -62,6 +62,14 @@ app.get("/account", verifyIsUserExist, (request, response) => {
 
     return response.json(customer)
 })
+
+app.delete("/account", verifyIsUserExist, (request, response) => {
+    const { customer } = request
+
+    customers.splice(customer, 1)
+
+    return response.status(200).json(customers)
+})
 // app.use(verifyIsUserExist)
 app.get('/statement', verifyIsUserExist, (request, response) => {
     const { customer } = request
@@ -114,6 +122,14 @@ app.post('/withdraw', verifyIsUserExist, (request, response) => {
     return response.send()
 
 
+})
+
+app.get("/balance", verifyIsUserExist, (request, response) => {
+    const { customer } = request
+
+    const balance = getBalance(customer.statement)
+
+    return response.json(balance)
 })
 
 
