@@ -48,6 +48,20 @@ app.post('/account', (request, response) => {
     return response.status(201).send()
 })
 
+app.put('/account', verifyIsUserExist, (request, response) => {
+    const { customer } = request
+    const { name } = request.body
+
+    customer.name = name
+
+    return response.status(201).send()
+})
+
+app.get("/account", verifyIsUserExist, (request, response) => {
+    const { customer } = request
+
+    return response.json(customer)
+})
 // app.use(verifyIsUserExist)
 app.get('/statement', verifyIsUserExist, (request, response) => {
     const { customer } = request
@@ -101,6 +115,7 @@ app.post('/withdraw', verifyIsUserExist, (request, response) => {
 
 
 })
+
 
 app.listen(PORT, () => {
     console.log(`Server is running on PORT: ${PORT}`)
