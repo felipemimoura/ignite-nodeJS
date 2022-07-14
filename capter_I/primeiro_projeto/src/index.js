@@ -21,6 +21,16 @@ const verifyIsUserExist = (request, response, next) => {
     return next()
 }
 
+const getBalance = (statement) => {
+    return statement.reduce((acc, opperation) => {
+        if(opperation.type === 'credit'){
+            return acc + opperation.amount
+        }else {
+            return acc - opperation.amount
+        }
+    }, 0)
+}
+
 app.post('/account', (request, response) => {
     const { cpf, name } = request.body
 
@@ -44,7 +54,7 @@ app.get('/statement', verifyIsUserExist, (request, response) => {
     return response.json(customer.statement)
 })
 
-app.post('/deposit',verifyIsUserExist, (request, response) => {
+app.post('/deposit', verifyIsUserExist, (request, response) => {
     const { description, amount } = request.body
     const { customer } = request
 
@@ -60,6 +70,29 @@ app.post('/deposit',verifyIsUserExist, (request, response) => {
     return response.status(201).send()
 })
 
+
+app.post('/withdraw', verifyIsUserExist, (request, response) => {
+    const { amount } = request.body
+    const { customer } = request
+
+    const balance = getBalance(customer.statement)
+
+    if(balance < amount) {
+        return response.status(400).json({error: "Insufficient founds"})
+    }
+
+    const statementOperation = {
+        amount,
+        created_at: new Date(),
+        type: "withdraw"
+    }
+
+    customer.statement.push(statementOperation)
+
+    return response.send()
+
+
+})
 
 app.listen(PORT, () => {
     console.log(`Server is running on PORT: ${PORT}`)
